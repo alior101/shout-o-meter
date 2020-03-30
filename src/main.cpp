@@ -11,11 +11,13 @@ int trig  = 0;
 int cnt=0;
 int lastcnt=0;
 int silence = 0;
+
 void setup()
 {
   // initialize LED digital pin as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(13,INPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
+  //digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(D7,INPUT);
   Serial.begin(115200);
   servo.attach(14); //D4
   servo.write(20);
@@ -43,10 +45,14 @@ void loop()
         silence ++;
     }
     
-    if (silence > 900)
+    if ((silence > 900) && cnt)
     {
+        sprintf(buffer, "Clearing...");
+        Serial.println(buffer);
         silence = 0;
         cnt = 0;
+        per = 10;
+        servo.write(per);
     }
     
     if (cnt != lastcnt)
@@ -54,21 +60,23 @@ void loop()
         sprintf(buffer, "cnt is %d ", cnt);
         Serial.println(buffer);
         lastcnt = cnt;
+        per++;
+        if (per > 180)
+        {
+            per = 180;
+        }
+        // do not move the servo for short noises
+        if (cnt> 20) trig =1;
     }
+
     // wait for a second
     delay(1);
 
-    if (trig)
+    if (trig && (per > 20))
     {
-        char buffer[30];
+        trig = 0;
         sprintf(buffer, "pwd is %d ", per);
         Serial.println(buffer);
-
-        per += 5;
-        if (per>180) 
-        {
-            per=0;
-        }
         servo.write(per);
     }
 }
